@@ -1,0 +1,20 @@
+inherit_from:
+  - .rubocop_todo.yml
+Rails:
+  Enabled: true
+require: rubocop-rspec
+AllCops:
+  DisplayCopNames: true
+  Exclude:
+    - db/schema.rb
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+Layout/IndentationConsistency:
+  EnforcedStyle: normal
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+  Exclude:
+    - Gemfile
+Metrics/LineLength:
+  Max: 100
+  IgnoredPatterns: ['^(\s){0,6}#']
