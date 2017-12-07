@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  resources :projects do
-    resources :tasks
+  namespace :api do
+    resources :projects
   end
 end
