@@ -38,7 +38,7 @@ class Api::ProjectsController < ApplicationController
       }.to_json
     else
       render status: 422, json: {
-        message: "The project can't be updated"
+        message: "The project can't be updated."
       }.to_json
     end
   end
@@ -53,7 +53,7 @@ class Api::ProjectsController < ApplicationController
     @project = Project.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render status: 404, json: {
-      message: "The project cannot be found"
+      message: "The project cannot be found."
     }.to_json
   end
 end
