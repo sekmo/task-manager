@@ -1,10 +1,12 @@
 class Api::ProjectsController < ApplicationController
+  before_action :find_project, only: [:show, :destroy, :update]
+
   def index
     render json: Project.all
   end
 
   def show
-    render json: Project.find(params[:id])
+    render json: @project
   end
 
   def create
@@ -22,16 +24,14 @@ class Api::ProjectsController < ApplicationController
   end
 
   def destroy
-    project = Project.find(params[:id])
-    project.destroy
+    @project.destroy
     render status: 200, json: {
       message: "Successfully deleted project."
     }.to_json
   end
 
   def update
-    project = Project.find(params[:id])
-    if project.update(project_params)
+    if @project.update(project_params)
       render status: 200, json: {
         message: "Successfully updated project.",
         project: project
@@ -47,5 +47,13 @@ class Api::ProjectsController < ApplicationController
 
   def project_params
     params.require("project").permit("name")
+  end
+
+  def find_project
+    @project = Project.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render status: 404, json: {
+      message: "The project cannot be found"
+    }.to_json
   end
 end
