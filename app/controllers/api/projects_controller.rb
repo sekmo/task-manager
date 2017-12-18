@@ -34,7 +34,7 @@ class Api::ProjectsController < ApplicationController
     if @project.update(project_params)
       render status: 200, json: {
         message: "Successfully updated project.",
-        project: project
+        project: @project
       }.to_json
     else
       render status: 422, json: {

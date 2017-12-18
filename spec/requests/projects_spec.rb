@@ -30,10 +30,10 @@ describe "Projects API", type: :request do
       end
 
       it "returns all the projects" do
-        json_response = JSON.parse(response.body)
-        expect(json_response.size).to eq(projects.size)
-        json_response.each_with_index do |json_object, index|
-          expect(json_object["name"]).to eq(projects[index].name)
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response.size).to eq(projects.size)
+        parsed_response.each_with_index do |hash, index|
+          expect(hash).to eq(projects[index].as_json)
         end
       end
     end
@@ -52,8 +52,8 @@ describe "Projects API", type: :request do
       end
 
       it "returns the project" do
-        json_response = JSON.parse(response.body)
-        expect(json_response["name"]).to eq(project.name)
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response).to eq(project.as_json)
       end
     end
 
@@ -67,16 +67,15 @@ describe "Projects API", type: :request do
       end
 
       it "returns a not found message" do
-        json_response = JSON.parse(response.body)
-        expect(json_response["message"]).to eq("The project cannot be found.")
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response["message"]).to eq("The project cannot be found.")
       end
     end
   end
 
   describe "POST /api/projects/" do
     context "with valid parameters" do
-      project_name = "Repaint the house"
-      let(:valid_parameters) { {project: {name: project_name}} }
+      let(:valid_parameters) { {project: {name: "Repaint the house"}} }
 
       it "returns 200" do
         post api_projects_path, params: valid_parameters.to_json, headers: json_content_headers
@@ -91,16 +90,16 @@ describe "Projects API", type: :request do
 
       it "returns the project" do
         post api_projects_path, params: valid_parameters.to_json, headers: json_content_headers
-        json_response = JSON.parse(response.body)
-        project_json = json_response["project"]
-        project_id = project_json["id"]
-        expect(project_json).to eq(Project.find(project_id).as_json)
+        parsed_response = JSON.parse(response.body)
+        project_hash = parsed_response["project"]
+        project_id = project_hash["id"]
+        expect(project_hash).to eq(Project.find(project_id).as_json)
       end
 
       it "returns a successful message" do
         post api_projects_path, params: valid_parameters.to_json, headers: json_content_headers
-        json_response = JSON.parse(response.body)
-        expect(json_response["message"]).to eq("Successfully created project.")
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response["message"]).to eq("Successfully created project.")
       end
     end
 
@@ -124,7 +123,6 @@ describe "Projects API", type: :request do
     before :each do
       @project = create(:project, name: "Build the bookshelf")
     end
-    let(:headers) { {"Content-type" => "application/json"} }
 
     context "when the record exists" do
       it "returns 200" do
@@ -149,6 +147,69 @@ describe "Projects API", type: :request do
         expect {
           delete api_project_path(99999), headers: json_content_headers
         }.not_to change(Project, :count)
+      end
+    end
+  end
+
+  describe "PUT /api/projects/:id" do
+    before :each do
+      @project = create(:project, name: "Build the bookshelf")
+    end
+
+    context "when the record exists, with valid parameters" do
+      let(:valid_parameters) { {project: {name: "Build the super-bookshelf"}} }
+
+      it "returns 200" do
+        put api_project_path(@project.id), headers: json_content_headers,
+                                           params: valid_parameters.to_json
+        expect(response).to have_http_status(200)
+      end
+
+      it "updates the project" do
+        expect {
+          put api_project_path(@project.id), headers: json_content_headers,
+                                             params: valid_parameters.to_json
+        }.to change { @project.reload.name }.from(@project.name)
+                                            .to(valid_parameters[:project][:name])
+      end
+
+      it "returns the project" do
+        put api_project_path(@project.id), headers: json_content_headers,
+                                           params: valid_parameters.to_json
+        parsed_response = JSON.parse(response.body)
+        project_json = parsed_response["project"]
+        project_id = project_json["id"]
+        expect(project_json).to eq(Project.find(project_id).as_json)
+      end
+    end
+
+    context "when the record exists, with invalid parameters" do
+      let(:invalid_parameters) { {project: {name: ""}} }
+
+      it "returns 422" do
+        put api_project_path(@project.id), headers: json_content_headers,
+                                           params: invalid_parameters.to_json
+        expect(response).to have_http_status(422)
+      end
+
+      it "does not update the project" do
+        expect {
+          put api_project_path(@project.id), headers: json_content_headers,
+                                             params: invalid_parameters.to_json
+        }.not_to change { @project.reload.updated_at }
+      end
+    end
+
+    context "when the record does not exist" do
+      it "returns 404" do
+        delete api_project_path(99999), headers: json_content_headers
+        expect(response).to have_http_status(404)
+      end
+
+      it "does not touch any project" do
+        expect {
+          delete api_project_path(99999), headers: json_content_headers
+        }.not_to change { Project.maximum(:updated_at) }
       end
     end
   end
