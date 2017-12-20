@@ -30,9 +30,9 @@ describe "Projects API", type: :request do
       end
 
       it "returns all the projects" do
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response.size).to eq(projects.size)
-        parsed_response.each_with_index do |hash, index|
+        response_body = body_from_json_response
+        expect(response_body.size).to eq(projects.size)
+        response_body.each_with_index do |hash, index|
           expect(hash).to eq(projects[index].as_json)
         end
       end
@@ -52,8 +52,8 @@ describe "Projects API", type: :request do
       end
 
       it "returns the project" do
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to eq(project.as_json)
+        response_body = body_from_json_response
+        expect(response_body).to eq(project.as_json)
       end
     end
 
@@ -67,8 +67,8 @@ describe "Projects API", type: :request do
       end
 
       it "returns a not found message" do
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response["message"]).to eq("The project cannot be found.")
+        response_body = body_from_json_response
+        expect(response_body["message"]).to eq("The project cannot be found.")
       end
     end
   end
@@ -90,16 +90,16 @@ describe "Projects API", type: :request do
 
       it "returns the project" do
         post api_projects_path, params: valid_parameters.to_json, headers: json_content_headers
-        parsed_response = JSON.parse(response.body)
-        project_hash = parsed_response["project"]
+        response_body = body_from_json_response
+        project_hash = response_body["project"]
         project_id = project_hash["id"]
         expect(project_hash).to eq(Project.find(project_id).as_json)
       end
 
       it "returns a successful message" do
         post api_projects_path, params: valid_parameters.to_json, headers: json_content_headers
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response["message"]).to eq("Successfully created project.")
+        response_body = body_from_json_response
+        expect(response_body["message"]).to eq("Successfully created project.")
       end
     end
 
@@ -176,8 +176,8 @@ describe "Projects API", type: :request do
       it "returns the project" do
         put api_project_path(@project.id), headers: json_content_headers,
                                            params: valid_parameters.to_json
-        parsed_response = JSON.parse(response.body)
-        project_json = parsed_response["project"]
+        response_body = body_from_json_response
+        project_json = response_body["project"]
         project_id = project_json["id"]
         expect(project_json).to eq(Project.find(project_id).as_json)
       end

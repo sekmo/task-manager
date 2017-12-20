@@ -25,16 +25,16 @@ describe "Tasks API", type: :request do
 
       it "returns the task" do
         send_valid_post_request
-        parsed_response = JSON.parse(response.body)
-        returned_task = parsed_response["task"]
+        response_body = body_from_json_response
+        returned_task = response_body["task"]
         persisted_task = Task.find(returned_task["id"])
         expect(returned_task).to eq(persisted_task.as_json)
       end
 
       it "returns a successful message" do
         send_valid_post_request
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response["message"]).to eq("Successfully created task.")
+        response_body = body_from_json_response
+        expect(response_body["message"]).to eq("Successfully created task.")
       end
     end
 
@@ -57,8 +57,8 @@ describe "Tasks API", type: :request do
 
       it "returns a not found message" do
         send_post_request_with_invalid_project_id
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response["message"]).to eq("The project cannot be found.")
+        response_body = body_from_json_response
+        expect(response_body["message"]).to eq("The project cannot be found.")
       end
     end
   end
