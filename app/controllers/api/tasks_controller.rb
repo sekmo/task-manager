@@ -5,7 +5,7 @@ class Api::TasksController < ApplicationController
   def create
     task = @project.tasks.build(task_params)
     if task.save
-      render status: 200, json: {
+      render status: 201, json: {
         message: "Successfully created task.",
         project: @project,
         task: task

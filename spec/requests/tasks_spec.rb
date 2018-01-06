@@ -12,9 +12,9 @@ describe "Tasks API", type: :request do
                                                  headers: json_content_headers
       end
 
-      it "returns 200" do
+      it "returns 201" do
         send_valid_post_request
-        expect(response).to have_http_status(200)
+        expect(response).to have_http_status(201)
       end
 
       it "creates a new task" do

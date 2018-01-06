@@ -78,9 +78,9 @@ describe "Projects API", type: :request do
     context "with valid parameters" do
       let(:valid_parameters) { {project: {name: "Repaint the house"}} }
 
-      it "returns 200" do
+      it "returns 201" do
         post api_projects_path, params: valid_parameters.to_json, headers: json_content_headers
-        expect(response).to have_http_status(200)
+        expect(response).to have_http_status(201)
       end
 
       it "creates a new project" do

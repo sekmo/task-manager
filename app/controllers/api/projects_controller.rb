@@ -12,7 +12,7 @@ class Api::ProjectsController < ApplicationController
   def create
     project = Project.new(project_params)
     if project.save
-      render status: 200, json: {
+      render status: 201, json: {
         message: "Successfully created project.",
         project: project
       }.to_json
