@@ -12,6 +12,7 @@ class Api::TasksController < ApplicationController
       }.to_json
     else
       render status: 422, json: {
+        message: "The task cannot be created.",
         errors: task.errors
       }.to_json
     end
