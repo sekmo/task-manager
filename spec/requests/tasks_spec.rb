@@ -2,10 +2,58 @@ require "rails_helper"
 
 describe "Tasks API", type: :request do
   let(:json_content_headers) { {"Content-type" => "application/json"} }
-  let(:project) { create(:project) }
+  let!(:project) { create(:project) }
+  let!(:task) { create(:task) }
   let(:valid_task_parameters) { {task: attributes_for(:task)} }
   let(:invalid_task_parameters) { {task: attributes_for(:task, :invalid)} }
   let(:invalid_id) { 999_999_999_999 }
+
+  describe "DELETE /api/projects/:project_id/tasks/:id" do
+    context "with a valid project id, task id" do
+      it "returns 200" do
+        delete api_project_task_path(project.id, task.id)
+        expect(response).to have_http_status(200)
+      end
+
+      it "deletes the task" do
+        expect {
+          delete api_project_task_path(project.id, task.id)
+        }.to change(Task, :count).by(-1)
+      end
+
+      it "returns a successful message" do
+        delete api_project_task_path(project.id, task.id)
+        response_body_hash = body_from_json_response
+        expect(response_body_hash["message"]).to eq("The task has been successfully deleted.")
+      end
+    end
+
+    context "with an invalid task id" do
+      it "returns 404" do
+        delete api_project_task_path(project.id, invalid_id)
+        expect(response).to have_http_status(404)
+      end
+
+      it "does not delete any task" do
+        expect {
+          delete api_project_task_path(project.id, invalid_id)
+        }.not_to change(Task, :count)
+      end
+    end
+
+    context "with an invalid project id" do
+      it "returns 404" do
+        delete api_project_task_path(invalid_id, task.id)
+        expect(response).to have_http_status(404)
+      end
+
+      it "does not delete any task" do
+        expect {
+          delete api_project_task_path(invalid_id, task.id)
+        }.not_to change(Task, :count)
+      end
+    end
+  end
 
   describe "POST /api/projects/:project_id/tasks" do
     context "with valid project_id, task parameters" do

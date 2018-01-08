@@ -22,6 +22,10 @@ class Api::TasksController < ApplicationController
   end
 
   def destroy
+    @task.destroy
+    render status: 200, json: {
+      message: "The task has been successfully deleted."
+    }.to_json
   end
 
   private
