@@ -2,7 +2,7 @@ require "rails_helper"
 
 describe "Projects API", type: :request do
   let(:json_content_headers) { {"Content-type" => "application/json"} }
-  let(:invalid_project_id) { 999_999_999_999 }
+  let(:invalid_id) { 999_999_999_999 }
 
   describe "GET /api/projects/" do
     context "with no projects" do
@@ -60,7 +60,7 @@ describe "Projects API", type: :request do
 
     context "when the record does not exist" do
       before :each do
-        get api_project_path(invalid_project_id)
+        get api_project_path(invalid_id)
       end
 
       it "returns 404" do
@@ -121,62 +121,58 @@ describe "Projects API", type: :request do
   end
 
   describe "DELETE /api/projects/:id" do
-    before :each do
-      @project = create(:project, name: "Build the bookshelf")
-    end
+    let!(:project) { create(:project, name: "Build the bookshelf") }
 
     context "when the record exists" do
       it "returns 200" do
-        delete api_project_path(@project.id), headers: json_content_headers
+        delete api_project_path(project.id), headers: json_content_headers
         expect(response).to have_http_status(200)
       end
 
       it "deletes the project" do
         expect {
-          delete api_project_path(@project.id), headers: json_content_headers
+          delete api_project_path(project.id), headers: json_content_headers
         }.to change(Project, :count).by(-1)
       end
     end
 
     context "when the record does not exist" do
       it "returns 404" do
-        delete api_project_path(invalid_project_id), headers: json_content_headers
+        delete api_project_path(invalid_id), headers: json_content_headers
         expect(response).to have_http_status(404)
       end
 
       it "does not delete any project" do
         expect {
-          delete api_project_path(invalid_project_id), headers: json_content_headers
+          delete api_project_path(invalid_id), headers: json_content_headers
         }.not_to change(Project, :count)
       end
     end
   end
 
   describe "PUT /api/projects/:id" do
-    before :each do
-      @project = create(:project, name: "Build the bookshelf")
-    end
+    let!(:project) { create(:project, name: "Build the bookshelf") }
 
     context "when the record exists, with valid parameters" do
       let(:valid_parameters) { {project: {name: "Build the super-bookshelf"}} }
 
       it "returns 200" do
-        put api_project_path(@project.id), headers: json_content_headers,
-                                           params: valid_parameters.to_json
+        put api_project_path(project.id), headers: json_content_headers,
+                                          params: valid_parameters.to_json
         expect(response).to have_http_status(200)
       end
 
       it "updates the project" do
         expect {
-          put api_project_path(@project.id), headers: json_content_headers,
-                                             params: valid_parameters.to_json
-        }.to change { @project.reload.name }.from(@project.name)
-                                            .to(valid_parameters[:project][:name])
+          put api_project_path(project.id), headers: json_content_headers,
+                                            params: valid_parameters.to_json
+        }.to change { project.reload.name }.from(project.name)
+                                           .to(valid_parameters[:project][:name])
       end
 
       it "returns the project" do
-        put api_project_path(@project.id), headers: json_content_headers,
-                                           params: valid_parameters.to_json
+        put api_project_path(project.id), headers: json_content_headers,
+                                          params: valid_parameters.to_json
         response_body_hash = body_from_json_response
         project_hash = response_body_hash["project"]
         project_id = project_hash["id"]
@@ -188,28 +184,28 @@ describe "Projects API", type: :request do
       let(:invalid_parameters) { {project: {name: ""}} }
 
       it "returns 422" do
-        put api_project_path(@project.id), headers: json_content_headers,
-                                           params: invalid_parameters.to_json
+        put api_project_path(project.id), headers: json_content_headers,
+                                          params: invalid_parameters.to_json
         expect(response).to have_http_status(422)
       end
 
       it "does not update the project" do
         expect {
-          put api_project_path(@project.id), headers: json_content_headers,
-                                             params: invalid_parameters.to_json
-        }.not_to change { @project.reload.updated_at }
+          put api_project_path(project.id), headers: json_content_headers,
+                                            params: invalid_parameters.to_json
+        }.not_to change { project.reload.updated_at }
       end
     end
 
     context "when the record does not exist" do
       it "returns 404" do
-        delete api_project_path(invalid_project_id), headers: json_content_headers
+        delete api_project_path(invalid_id), headers: json_content_headers
         expect(response).to have_http_status(404)
       end
 
       it "does not touch any project" do
         expect {
-          delete api_project_path(invalid_project_id), headers: json_content_headers
+          delete api_project_path(invalid_id), headers: json_content_headers
         }.not_to change { Project.maximum(:updated_at) }
       end
     end
