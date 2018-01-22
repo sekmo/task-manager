@@ -19,6 +19,16 @@ class Api::TasksController < ApplicationController
   end
 
   def update
+    if @task.update(task_params)
+      render status: 200, json: {
+        message: "Successfully updated task.",
+        task: @task
+      }.to_json
+    else
+      render status: 422, json: {
+        message: "The task can't be updated."
+      }.to_json
+    end
   end
 
   def destroy
