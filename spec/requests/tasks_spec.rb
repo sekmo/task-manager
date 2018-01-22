@@ -10,21 +10,26 @@ describe "Tasks API", type: :request do
 
   describe "DELETE /api/projects/:project_id/tasks/:id" do
     context "with a valid project id, task id" do
-      it "returns 200" do
+      def send_valid_delete_request
         delete api_project_task_path(project.id, task.id)
+      end
+
+      it "returns 200" do
+        send_valid_delete_request
         expect(response).to have_http_status(200)
       end
 
       it "deletes the task" do
         expect {
-          delete api_project_task_path(project.id, task.id)
+          send_valid_delete_request
         }.to change(Task, :count).by(-1)
       end
 
       it "returns a successful message" do
-        delete api_project_task_path(project.id, task.id)
+        send_valid_delete_request
         response_body_hash = body_from_json_response
-        expect(response_body_hash["message"]).to eq("The task has been successfully deleted.")
+        returned_message = response_body_hash["message"]
+        expect(returned_message).to eq("The task has been successfully deleted.")
       end
     end
 
@@ -140,6 +145,95 @@ describe "Tasks API", type: :request do
         send_post_request_with_invalid_task_params
         response_body_hash = body_from_json_response
         expect(response_body_hash["message"]).to eq("The task cannot be created.")
+      end
+    end
+  end
+
+  describe "PUT /api/projects/:project_id/tasks/:id" do
+    let(:new_task_title) { "updated_task_title" }
+    let(:updated_task_parameters) { {task: attributes_for(:task, title: new_task_title)} }
+
+    context "with valid project_id, task id, task parameters" do
+      def send_valid_put_request
+        put api_project_task_path(project.id, task.id), headers: json_content_headers,
+                                                        params: updated_task_parameters.to_json
+      end
+
+      it "returns 200" do
+        send_valid_put_request
+        expect(response).to have_http_status(200)
+      end
+
+      it "updates the task" do
+        expect { send_valid_put_request
+        }.to change { task.reload.title }.from(task.title).to(new_task_title)
+      end
+
+      it "returns the task" do
+        send_valid_put_request
+        response_body_hash = body_from_json_response
+        task_hash = response_body_hash["task"]
+        expect(task_hash).to eq(task.reload.as_json)
+      end
+    end
+
+    context "with invalid parameters" do
+      def send_put_request_with_invalid_parameters
+        put api_project_task_path(project.id, task.id), headers: json_content_headers,
+                                                        params: invalid_task_parameters.to_json
+      end
+
+      it "returns 422" do
+        send_put_request_with_invalid_parameters
+        expect(response).to have_http_status(422)
+      end
+
+      it "doesn't update the task" do
+        expect { send_put_request_with_invalid_parameters }.not_to change { task.reload.updated_at }
+      end
+    end
+
+    context "with invalid project_id" do
+      def send_put_request_with_invalid_project_id
+        put api_project_task_path(invalid_id, task.id), headers: json_content_headers,
+                                                        params: updated_task_parameters.to_json
+      end
+
+      it "returns 404" do
+        send_put_request_with_invalid_project_id
+        expect(response).to have_http_status(404)
+      end
+
+      it "doesn't update the task" do
+        expect { send_put_request_with_invalid_project_id }.not_to change { task.reload.updated_at }
+      end
+
+      it "returns an error message" do
+        send_put_request_with_invalid_project_id
+        response_body_hash = body_from_json_response
+        expect(response_body_hash["message"]).to eq("The project cannot be found.")
+      end
+    end
+
+    context "with invalid task_id" do
+      def send_put_request_with_invalid_task_id
+        put api_project_task_path(project.id, invalid_id), headers: json_content_headers,
+                                                           params: updated_task_parameters.to_json
+      end
+
+      it "returns 404" do
+        send_put_request_with_invalid_task_id
+        expect(response).to have_http_status(404)
+      end
+
+      it "doesn't update the task" do
+        expect { send_put_request_with_invalid_task_id }.not_to change { task.reload.updated_at }
+      end
+
+      it "returns an error message" do
+        send_put_request_with_invalid_task_id
+        response_body_hash = body_from_json_response
+        expect(response_body_hash["message"]).to eq("The task cannot be found.")
       end
     end
   end
